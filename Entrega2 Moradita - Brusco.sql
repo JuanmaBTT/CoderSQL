@@ -324,7 +324,7 @@ END //
 
 DELIMITER ;
 
--- Inserción de datos: La tabla stock y auditoría se cargan mediante los triggers.
+-- Inserción de datos: La tabla stock, catalogo y auditoría se cargan mediante los triggers.
 
 -- Utilizar el esquema moradita
 USE moradita;
@@ -433,11 +433,11 @@ INSERT INTO venta (id_articulo, name, quantity, sale_price, payment_method, bank
 (10, 'Laptop Gaming', 1, 50000.00, 'Tarjeta de Crédito', 'Banco Nacional', '001122334458', 'UYU', 1, 1, 'VENT123466', '2024-07-07');
 
 
-DELIMITER //
-
 -- Creación de funciones.
 
 -- 1) Cálculo de IVA
+
+DELIMITER //
 
 CREATE FUNCTION calcular_iva(id_ticket INT, id_articulo INT)
 RETURNS DECIMAL(10, 2)
@@ -542,7 +542,6 @@ CALL actualizar_precio_costo(1, NULL, 'PORCENTAJE', 10, 5, FALSE);
 CALL actualizar_precio_costo(NULL, 2, 'FIJO', 200.00, 150.00, TRUE);
 CALL actualizar_precio_costo(NULL, 2, 'PORCENTAJE', 8, 3, TRUE);
 
-DELIMITER //
 
 -- 2) Procedimiento Almacenado para Generar el Reporte Mensual de Ventas:
 
