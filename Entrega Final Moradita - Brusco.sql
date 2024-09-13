@@ -529,18 +529,43 @@ INSERT INTO tipo_de_movimiento (descripcion) VALUES
 ('Venta'),
 ('Devolución de Venta');
 
+INSERT INTO promociones (description, discount_percentage, start_date, end_date) VALUES 
+('Descuento de Verano - 10% en toda la tienda', 10.00, '2024-01-01', '2024-03-31'),
+('Black Friday - 20% en electrónica', 20.00, '2024-11-25', '2024-11-30'),
+('Promoción de Navidad - 15% en ropa', 15.00, '2024-12-01', '2024-12-31'),
+('Descuento en juguetes - 25% en compras mayores a $1000', 25.00, '2024-06-01', '2024-06-30'),
+('Promo Salud - 5% en suplementos vitamínicos', 5.00, '2024-05-01', '2024-05-31'),
+('Oferta de Año Nuevo - 30% en muebles', 30.00, '2024-12-31', '2025-01-15'),
+('Descuento por Compras Mayores - 10% en compras mayores a $5000', 10.00, '2024-07-01', '2024-07-31'),
+('Descuento por Fidelidad - 15% para clientes recurrentes', 15.00, '2024-08-01', '2024-08-31');
+
+INSERT INTO articulo_promocion (id_articulo, id_promocion) VALUES 
+(1, 1),
+(2, 3),
+(3, 6),
+(4, 7),
+(5, 2),
+(6, 5),
+(7, 3),
+(8, 6),
+(9, 4),
+(10, 8);
+
 -- Venta
 INSERT INTO venta (id_articulo, quantity, sale_price, payment_method, bank, bank_account_number, currency, id_cliente, id_iva, id_deposito, id_tipo_de_movimiento, document_number, fecha)
 VALUES 
 (1, 2, 15000.00, 'Tarjeta de crédito', 'Banco Santander', '123456789012', 'UYU', 1, 1, 1, 1, 'VEN001', '2024-02-10'),
-(2, 5, 1000.00, 'Efectivo', NULL, NULL, 'UYU', 2, 2, 2, 1, 'VEN002', '2024-03-15'),
+(2, 5, 1000.00, 'Efec
+
+
+ivo', NULL, NULL, 'UYU', 2, 2, 2, 1, 'VEN002', '2024-03-15'),
 (3, 1, 25000.00, 'Transferencia bancaria', 'Banco Itaú', '987654321098', 'UYU', 3, 1, 3, 1, 'VEN003', '2024-04-20'),
 (4, 2, 600.00, 'Tarjeta de crédito', 'Banco República', '11122334455', 'UYU', 4, 2, 4, 1, 'VEN004', '2024-05-22'),
 (5, 3, 1500.00, 'Efectivo', NULL, NULL, 'UYU', 5, 2, 5, 1, 'VEN005', '2024-06-05'),
 (6, 6, 200.00, 'Tarjeta de débito', 'Banco Santander', '543210987654', 'UYU', 6, 3, 6, 1, 'VEN006', '2024-07-10'),
 (7, 3, 35000.00, 'Transferencia bancaria', 'Banco Itaú', '321098765432', 'UYU', 7, 1, 7, 1, 'VEN007', '2024-08-15'),
 (8, 5, 1200.00, 'Efectivo', NULL, NULL, 'UYU', 8, 2, 8, 1, 'VEN008', '2024-09-01'),
-(9, 7, 350.00, 'Tarjeta de crédito', 'Banco República', '22334455667', 'UYU', 9, 2, 9, 1, 'VEN009', '2024-09-18'),
+(9, 7, 350.00, 'Tarjeta de crédito', 'Banco República', '22334455667', 'UYU', 9, 2, 9, 1, 'VEN009', '2024-06-18'),
 (10, 10, 150.00, 'Efectivo', NULL, NULL, 'UYU', 10, 3, 10, 1, 'VEN010', '2024-10-05'),
 (11, 7, 700.00, 'Transferencia bancaria', 'Banco Itaú', '432109876543', 'UYU', 10, 1, 1, 1, 'VEN011', '2024-11-12'),
 (12, 10, 950.00, 'Tarjeta de crédito', 'Banco Santander', '654321098765', 'UYU', 9, 2, 2, 1, 'VEN012', '2024-11-22'),
@@ -684,6 +709,7 @@ END //
 DELIMITER ;
 
 CALL generar_reporte_ventas_mensual(9, 2024);
+
 
 -- Crear las vistas
 
@@ -871,4 +897,67 @@ ORDER BY
     cumplimiento ASC, 
     id_proveedor;
 
-select * from historial_cambios_precios
+-- 9) Resultado promociones:
+CREATE OR REPLACE VIEW ventas_con_descuento AS
+SELECT 
+    v.id_venta,
+    v.id_articulo,
+    v.quantity,
+    v.sale_price AS precio_original,
+    ROUND(v.quantity * v.sale_price, 2) AS monto_original,
+    COALESCE(p.description, 'Sin promoción') AS descripcion_promocion,
+    COALESCE(p.discount_percentage, 0) AS porcentaje_descuento,
+    ROUND(v.sale_price * (1 - COALESCE(p.discount_percentage, 0) / 100), 2) AS precio_con_descuento,
+    ROUND(v.quantity * v.sale_price * (1 - COALESCE(p.discount_percentage, 0) / 100), 2) AS monto_con_descuento,
+    YEAR(v.fecha) AS anio,
+    MONTH(v.fecha) AS mes
+FROM 
+    venta v
+LEFT JOIN 
+    articulo_promocion ap ON v.id_articulo = ap.id_articulo
+LEFT JOIN 
+    promociones p ON ap.id_promocion = p.id_promocion
+AND v.fecha BETWEEN p.start_date AND p.end_date;
+SELECT 
+    descripcion_promocion,
+    anio,
+    mes,
+    SUM(monto_original) AS total_original,
+    SUM(monto_con_descuento) AS total_con_descuento,
+    SUM(monto_original) - SUM(monto_con_descuento) AS diferencia
+FROM 
+    ventas_con_descuento
+GROUP BY 
+    descripcion_promocion,
+    anio,
+    mes
+ORDER BY 
+    anio,
+    mes,
+    descripcion_promocion;
+
+
+-- Bonus track: Cree un usuario que solo puede utilizar select para validar que todo haya quedado OK, comparto aquí las consultas:
+-- CREATE USER coderhouse@localhost identified BY '123';
+-- GRANT SELECT ON moradita.* TO coderhouse1@localhost;
+-- use mysql;
+-- select * from user;
+
+
+select * from articulo;
+select * from articulo_promocion;
+select * from categoria_articulo;
+select * from cliente;
+select * from compra;
+select * from deposito;
+select * from historial_cambios_precios;
+select * from iva;
+select * from orden_de_compra;
+select * from promociones;
+select * from articulo_promocion;
+select * from proveedor;
+select * from recibo_de_mercaderia;
+select * from stock;
+select * from venta;
+select * from tipo_de_movimiento;
+select * from auditoria;
