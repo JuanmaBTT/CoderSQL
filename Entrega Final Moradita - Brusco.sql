@@ -555,10 +555,7 @@ INSERT INTO articulo_promocion (id_articulo, id_promocion) VALUES
 INSERT INTO venta (id_articulo, quantity, sale_price, payment_method, bank, bank_account_number, currency, id_cliente, id_iva, id_deposito, id_tipo_de_movimiento, document_number, fecha)
 VALUES 
 (1, 2, 15000.00, 'Tarjeta de crédito', 'Banco Santander', '123456789012', 'UYU', 1, 1, 1, 1, 'VEN001', '2024-02-10'),
-(2, 5, 1000.00, 'Efec
-
-
-ivo', NULL, NULL, 'UYU', 2, 2, 2, 1, 'VEN002', '2024-03-15'),
+(2, 5, 1000.00, 'Efecivo', NULL, NULL, 'UYU', 2, 2, 2, 1, 'VEN002', '2024-03-15'),
 (3, 1, 25000.00, 'Transferencia bancaria', 'Banco Itaú', '987654321098', 'UYU', 3, 1, 3, 1, 'VEN003', '2024-04-20'),
 (4, 2, 600.00, 'Tarjeta de crédito', 'Banco República', '11122334455', 'UYU', 4, 2, 4, 1, 'VEN004', '2024-05-22'),
 (5, 3, 1500.00, 'Efectivo', NULL, NULL, 'UYU', 5, 2, 5, 1, 'VEN005', '2024-06-05'),
